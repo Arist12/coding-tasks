@@ -1,0 +1,85 @@
+# Serving Qwen2.5-Coder with SGLang
+
+This repo includes Python scripts to serve and evaluate `Qwen/Qwen2.5-Coder-0.5B-Instruct` with Docker containers.
+
+## 1. Serve the model with SGLang
+
+The `./src/cli.py` script automates the setup of a Docker container and launches an SGLang server with a specified model.
+
+### Running the script
+
+To serve the model, navigate to the `./src` directory and run the script:
+
+```bash
+python cli.py [OPTIONS]
+```
+
+#### Options:
+
+The script accepts several command-line arguments to customize its behavior:
+
+-   `--container_name`: Name of the Docker container (default: `sglang_yikai`).
+-   `--model_path`: Path or Hugging Face repo ID of the model to serve (default: `Qwen/Qwen2.5-Coder-0.5B-Instruct`).
+-   `--port`: Port to serve the model on (default: `19998`).
+-   `--sglang_branch`: Branch of the SgLang repository to clone (default: `v0.4.6.post2` - the latest version at the time of implementation).
+-   `--gpu_id`: GPU ID to use for serving the model (default: `1`).
+-   `--proxy_host`: HTTP/HTTPS proxy to use inside the container (default: `172.17.0.1:1081`).
+
+For example, to run with default settings:
+
+```bash
+python cli.py
+```
+
+To specify a different GPU and port:
+
+```bash
+python cli.py --gpu_id 0 --port 20000
+```
+
+This will pull the necessary Docker image, set up the SGLang environment, and start the model server on the specified GPU and port.
+
+Now, we can greet the model by sending a request to the model server on the specified port:
+
+```python
+import requests
+
+port = 19999
+url = f"http://localhost:{port}/generate"
+data = {"text": "Hi, how are you?"}
+
+response = requests.post(url, json=data)
+print(response.json())
+```
+
+### Comments
+
+You might find it weird that extra steps are taken to install Python 3.10 and set up a virtual environment before serving the model.
+
+However, this is an indispendable step because the official SGLang Docker doesn't have SGLang dependencies correctly installed (during the development process, I found that both `lmsysorg/sglang:dev` and `lmsysorg/sglang:latest` will report missing `torchvision` error if directly executing `sglang.launch_server` command).
+
+```bash
+export http_proxy=http://{args.proxy_host}
+export https_proxy=http://{args.proxy_host}
+
+cd /sgl-workspace &&
+rm -rf sglang &&
+git clone -b {args.sglang_branch} https://github.com/sgl-project/sglang.git &&
+cd sglang &&
+
+apt update &&
+apt install -y python3.10 python3.10-venv &&
+
+python3 -m venv ~/.python/sglang &&
+source ~/.python/sglang/bin/activate &&
+
+pip install uv &&
+uv pip install --upgrade pip &&
+uv pip install -e 'python[all]' &&
+
+CUDA_VISIBLE_DEVICES={args.gpu_id} python3 -m sglang.launch_server \\
+    --model-path {args.model_path} \\
+    --host 0.0.0.0 \\
+    --port {args.port}
+```
+

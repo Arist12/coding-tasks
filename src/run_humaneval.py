@@ -48,6 +48,10 @@ with open("../results/humaneval_results.jsonl", "w") as f:
         }
 
         response = requests.post(url, json=data).json()["text"]
-        sample["response"] = response
 
-        f.write(json.dumps(sample) + "\n")
+        completed_task = {
+            "task_id": sample["task_id"],
+            "completion": response,
+        }
+
+        f.write(json.dumps(completed_task) + "\n")

@@ -43,6 +43,7 @@ with open("../results/humaneval_results.jsonl", "w") as f:
                 "temperature": 0.7,
                 "top_p": 0.8,
                 "top_k": 20,
+                "frequency_penalty": 1.05,
             },
         }
 

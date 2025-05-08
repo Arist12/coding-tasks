@@ -44,6 +44,7 @@ with open("../results/humaneval_results.jsonl", "w") as f:
                 "top_p": 0.8,
                 "top_k": 20,
                 "frequency_penalty": 1.05,
+                "stop_token_ids": [151645, 151643],
             },
         }
 

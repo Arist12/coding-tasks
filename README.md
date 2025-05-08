@@ -131,3 +131,39 @@ python run_humaneval.py
 ```
 
 The results will be saved to `./results/humaneval_results.jsonl`.
+
+## 3. Evaluation with `evalplus`
+
+First, install the `evalplus` package with the default `vllm` backend:
+
+```bash
+pip install "evalplus[vllm]" --upgrade
+```
+
+Now, we can sanitize the results and evaluate the model with the `evalplus` package:
+
+```bash
+evalplus.sanitize --samples ./results/humaneval_results.jsonl
+```
+
+With the sanitized results, we can evaluate the model with the `evalplus` package:
+
+```bash
+evalplus.evaluate --dataset humaneval --samples ./results/humaneval_results-sanitized.jsonl
+```
+
+If you are not in a Docker container, you can also evaluate the model with the `evalplus` package in a docker container by running the following command:
+
+```bash
+docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
+    evalplus.evaluate --dataset humaneval \
+    --samples /app/local_data/results/humaneval_results-sanitized.jsonl
+```
+
+| Model         | Our Result | Reported Result |
+|---------------|------------|-----------------|
+| Qwen2.5-Coder | 23.8       | 61.6            |
+
+## 4. Performance Improvement
+
+Original Speed: 02:17

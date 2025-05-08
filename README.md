@@ -83,3 +83,51 @@ CUDA_VISIBLE_DEVICES={args.gpu_id} python3 -m sglang.launch_server \\
     --port {args.port}
 ```
 
+## 2. Inference on HumanEval
+
+HumanEval is a code generation task that consists of 164 manually written programming tasks, each providing a Python function signature and a docstring as input to the model.
+
+The `./src/run_humaneval.py` script is used to inference the model on the HumanEval dataset. The output will be saved to `./results/humaneval_results.jsonl` by default.
+
+### Running the script
+
+We follow the [official settings](https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct) for `Qwen/Qwen2.5-Coder-0.5B-Instruct` to set chat template and sampling parameters during the inference.
+
+We set `max_new_tokens` to 512 following the [Qwen2.5-Coder GitHub repo](https://github.com/QwenLM/Qwen2.5-Coder).
+
+```python
+messages = [
+    {
+        "role": "system",
+        "content": "You are Qwen, created by Alibaba Cloud. You are a helpful assistant."
+    },
+    {
+        "role": "user",
+        "content": prompt
+    },
+]
+
+formatted_prompt = tokenizer.apply_chat_template(
+    messages, tokenize=False, add_generation_prompt=True
+)
+
+data = {
+    "text": formatted_prompt,
+    "sampling_params": {
+        "max_new_tokens": 512,
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+    },
+}
+
+response = requests.post(url, json=data).json()["text"]
+```
+
+To run the script, navigate to the `./src` directory and run the script:
+
+```bash
+python run_humaneval.py
+```
+
+The results will be saved to `./results/humaneval_results.jsonl`.

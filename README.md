@@ -174,6 +174,13 @@ docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
 
 ## 4. Performance Improvement
 
+The sequential inference script posts the request to the model server one by one, and will be stuck while waiting for each response, which is very slow.
+
+Concurrency (multi-thread, multi-process, or asynchronous, multi-process will deliever similar performance as multi-thread) can be used to save I/O time and significantly speed up the inference.
+
+Here's the performance comparison of the three scripts:
+
 Original Speed: 136.29s
 Multi-threaded Speed (64 threads): 5.98s
 Multi-threaded Speed (164 threads): 3.96s
+Asynchronous Speed: 4.40s

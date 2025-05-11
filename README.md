@@ -174,4 +174,6 @@ docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
 
 ## 4. Performance Improvement
 
-Original Speed: 136.7s
+Original Speed: 136.29s
+Multi-threaded Speed (64 threads): 5.98s
+Multi-threaded Speed (164 threads): 3.96s

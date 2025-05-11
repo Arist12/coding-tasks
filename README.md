@@ -1,10 +1,10 @@
 # Serving Qwen2.5-Coder with SGLang
 
-This repo includes Python scripts to serve and evaluate `Qwen/Qwen2.5-Coder-0.5B-Instruct` with Docker containers.
+This repo includes Python scripts to serve, inference, and evaluate `Qwen/Qwen2.5-Coder-0.5B-Instruct` with Docker containers.
 
 ## 1. Serve the model with SGLang
 
-The `./src/cli.py` script automates the setup of a Docker container and launches an SGLang server with a specified model.
+The `./src/cli.py` script automates the setup of a Docker container that launches an SGLang server to serve a user-specified model (e.g., for this repo, we default to serve `Qwen2.5-Coder-0.5B-Instruct`).
 
 ### Running the script
 
@@ -44,7 +44,7 @@ Now, we can greet the model by sending a request to the model server on the spec
 ```python
 import requests
 
-port = 19999
+port = 19999 # we will use this port by default in this repo
 url = f"http://localhost:{port}/generate"
 data = {"text": "Hi, how are you?"}
 
@@ -83,7 +83,7 @@ CUDA_VISIBLE_DEVICES={args.gpu_id} python3 -m sglang.launch_server \\
     --port {args.port}
 ```
 
-## 2. Inference on HumanEval
+## 2. Model Inference on HumanEval
 
 HumanEval is a code generation task that consists of 164 manually written programming tasks, each providing a Python function signature and a docstring as input to the model.
 
@@ -91,9 +91,11 @@ The `./src/run_humaneval.py` script is used to inference the model on the HumanE
 
 ### Running the script
 
-We follow the [official settings](https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct) for `Qwen/Qwen2.5-Coder-0.5B-Instruct` to set chat template and sampling parameters during the inference.
+We follow the [official hugging face settings](https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct) for `Qwen/Qwen2.5-Coder-0.5B-Instruct` to set chat template and sampling parameters during the inference.
 
 We set `max_new_tokens` to 512 following the [Qwen2.5-Coder GitHub repo](https://github.com/QwenLM/Qwen2.5-Coder).
+
+Here's a brief example of how the chat template and sampling parameters are set:
 
 ```python
 messages = [
@@ -124,13 +126,19 @@ data = {
 response = requests.post(url, json=data).json()["text"]
 ```
 
-To run the script, navigate to the `./src` directory and run the script:
+To run the script, navigate to the `./src` directory and run the sequential inference script:
 
 ```bash
-python run_humaneval.py
+python run_humaneval_seq.py
 ```
 
-The results will be saved to `./results/humaneval_results.jsonl`.
+The results will be saved to `./results/humaneval_results_seq.jsonl` by default.
+
+### Updates
+
+We modularized the code to store utility functions for the whole model inference process in `./src/utils.py`.
+
+To maximize evaluation throughput, we also implemented parallel versions of the inference script, which will be detailed in section 4.
 
 ## 3. Evaluation with `evalplus`
 
@@ -166,4 +174,4 @@ docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
 
 ## 4. Performance Improvement
 
-Original Speed: 02:17
+Original Speed: 136.7s

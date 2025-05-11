@@ -140,8 +140,9 @@ We modularized the code to store utility functions for the whole model inference
 
 To maximize evaluation throughput, we also implemented parallel versions of the inference script, which will be detailed in section 4.
 
-## 3. Evaluation with `evalplus`
+## 3. Evaluation
 
+### 3.1. Evaluation with `evalplus`
 First, install the `evalplus` package with the default `vllm` backend:
 
 ```bash
@@ -172,7 +173,7 @@ docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
 |---------------|------------|-----------------|
 | Qwen2.5-Coder | 23.8       | 61.6            |
 
-### Updates
+### 3.2. Evaluation with Minimal Script and Safer Evaluation
 
 We also implemented a minimal evaluation script adapated from the Human-Eval GitHub repo to perform evaluation on the results. The code is available in `./src/eval_humaneval.py`.
 
@@ -184,7 +185,36 @@ Here's an overview of the evaluation process:
 4. Check if tests pass
 5. Calculate pass@1 (percentage of problems solved on first try)
 
-We also implemented a safer evaluation script that execute the code in a Docker container. The code is available in `./src/eval_he_sb.py`.
+We also implemented a safer evaluation script that execute the code in a Docker container. Here's a step-by-step guide:
+
+1. Build the Docker image
+
+Navigate to the project root directory and build the Docker image:
+
+```bash
+docker build -t humaneval-sandbox .
+```
+
+2. Run the Docker container
+
+```bash
+docker run \
+    --rm \
+    --cpus 1 \
+    --memory 2g \
+    --pids-limit 256 \
+    --read-only \
+    --tmpfs /tmp:rw,size=64m \
+    --tmpfs /var/tmp:rw,size=64m \
+    --cap-drop ALL \
+    --security-opt no-new-privileges \
+    --network none \
+    -v "$(pwd)/results/humaneval_results_multi_thread.jsonl":/input.jsonl:ro \
+    -e HUMANEVAL_JSON=/input.jsonl \
+    humaneval-sandbox
+```
+
+This command will evaluate the results saved in `./results/humaneval_results_multi_thread.jsonl` and print the pass@1 score.
 
 ## 4. Performance Improvement
 

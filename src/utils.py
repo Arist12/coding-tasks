@@ -83,4 +83,6 @@ def process_sample(sample: Dict[str, Any], url: str) -> Dict[str, str]:
     return {
         "task_id": sample["task_id"],
         "completion": response,
+        "test": sample["test"],
+        "entry_point": sample["entry_point"],
     }

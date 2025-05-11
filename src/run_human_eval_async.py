@@ -28,6 +28,8 @@ async def async_process_sample(session, sample, url):
     return {
         "task_id": sample["task_id"],
         "completion": response,
+        "test": sample["test"],
+        "entry_point": sample["entry_point"],
     }
 
 

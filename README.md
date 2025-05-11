@@ -172,6 +172,20 @@ docker run --rm --pull=always -v $(pwd):/app/local_data ganler/evalplus:latest \
 |---------------|------------|-----------------|
 | Qwen2.5-Coder | 23.8       | 61.6            |
 
+### Updates
+
+We also implemented a minimal evaluation script adapated from the Human-Eval GitHub repo to perform evaluation on the results. The code is available in `./src/eval_humaneval.py`.
+
+Here's an overview of the evaluation process:
+
+1. Extract the code completion from the LLM output
+2. Combine completion with test cases
+3. Execute the code safely in a subprocess
+4. Check if tests pass
+5. Calculate pass@1 (percentage of problems solved on first try)
+
+We also implemented a safer evaluation script that execute the code in a Docker container. The code is available in `./src/eval_he_sb.py`.
+
 ## 4. Performance Improvement
 
 The sequential inference script posts the request to the model server one by one, and will be stuck while waiting for each response, which is very slow.
